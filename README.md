@@ -8,3 +8,4 @@
 
 
 https://github.com/EvgeniaSkasyrskaya/mesto-project-ff.git
+https://evgeniaskasyrskaya.github.io/mesto-project-ff/
