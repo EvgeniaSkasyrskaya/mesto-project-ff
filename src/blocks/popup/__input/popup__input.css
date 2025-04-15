@@ -14,6 +14,35 @@
   margin-bottom: 0;
 }
 
+.popup__input_type_error {
+  border-bottom: 1px solid rgba(255, 0, 0, 1);
+}
+
+.popup__input-error {
+  color: rgba(255, 0, 0, 1);
+  font-size: 12px;
+  line-height: 100%;
+  display: none;
+  position: absolute;
+  width: fit-content; 
+  max-width: 360px;
+  inset: 143px 36px;
+}
+
+.name-input-error, 
+.place-name-input-error {
+  inset: 143px 36px;
+}
+
+.description-input-error,
+.link-input-error {
+  inset: 200px 36px;
+}
+
+.popup__input-error_active {
+  display: block;
+}
+
 @media screen and (max-width: 568px) {
   .popup__title {
     font-size: 12px;

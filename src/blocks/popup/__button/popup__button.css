@@ -14,9 +14,20 @@
   margin-top: 48px;
 }
 
+.popup__button_disabled {
+  color: rgba(0, 0, 0, 0.25);
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  cursor: auto;
+}
+
 .popup__button:hover {
   background: rgba(0, 0, 0, 0.8);
   cursor: pointer;
+}
+
+.confirm-button {
+  margin-top: 33px;
 }
 
 @media screen and (max-width: 568px) {
