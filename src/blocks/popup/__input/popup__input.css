@@ -6,8 +6,7 @@
   font-size: 14px;
   line-height: 18px;
   box-sizing: border-box;
-  padding: 10px 0 0;
-  margin-bottom: 10px;
+  margin-bottom: 24px;
 }
 
 .popup__input:last-of-type {
@@ -27,6 +26,7 @@
   width: fit-content; 
   max-width: 360px;
   inset: 143px 36px;
+  max-height: min-content;
 }
 
 .name-input-error, 
@@ -36,7 +36,7 @@
 
 .description-input-error,
 .link-input-error {
-  inset: 200px 36px;
+  inset: 213px 36px;
 }
 
 .popup__input-error_active {

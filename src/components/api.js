@@ -1,5 +1,4 @@
 export { getId, getCards, updateProfile, updateAvatar, checkLink, sendNewCard, recallCard, sendLike, recallLike }
-import { closeModal } from "./modal";
 
 const config = {
     baseUrl: 'https://nomoreparties.co/v1/wff-cohort-36',
@@ -8,16 +7,30 @@ const config = {
       'Content-Type': 'application/json'
     }
   };
-  
-const getId = fetch('https://nomoreparties.co/v1/wff-cohort-36/users/me', {
-  method: 'GET',
-  headers: config.headers
-});
+
+const checkResponse = (res) => {
+  if (res.ok) {
+    return res.json();
+      } else {
+    return Promise.reject(`Произошла ошибка: ${res.status}`);
+    }
+};
+
+const getId = () => {
+  return fetch('https://nomoreparties.co/v1/wff-cohort-36/users/me', {
+    method: 'GET',
+    headers: config.headers
+  })
+  .then(res => checkResponse(res));
+};
    
-const getCards = fetch(`${config.baseUrl}/cards`, {
-  method: 'GET',
-  headers: config.headers
-});
+const getCards = () => {
+  return fetch(`${config.baseUrl}/cards`, {
+    method: 'GET',
+    headers: config.headers
+  })
+  .then(res => checkResponse(res));
+};
 
 const updateProfile = (inputProfileName, inputProfileJob) => {
   return fetch(`${config.baseUrl}/users/me`, {
@@ -27,7 +40,8 @@ const updateProfile = (inputProfileName, inputProfileJob) => {
       name: inputProfileName.value,
       about: inputProfileJob.value
     })
-  })  
+  })
+  .then(res => checkResponse(res));
 };
 
 const updateAvatar = (inputAvatarLink) => {
@@ -38,31 +52,28 @@ const updateAvatar = (inputAvatarLink) => {
       avatar: inputAvatarLink.value
     })
   })
+  .then(res => checkResponse(res));
 };
   
 //Так как при проверке большинства ссылок на изображения ответ блокируется политикой CORS, 
 // то данная функция была реализована таким образом, чтобы не блокировать обновление аватара пользователя 
 // в случае невозможности подтверждения того, что это действительно ссылка на изображение
 const checkLink = (inputAvatarLink) => {
-  fetch(`${inputAvatarLink.value}`, {
+  return fetch(`${inputAvatarLink.value}`, {
     method: 'HEAD',
   })
   .then(res => {
-    if (res.ok) {
-      return res.headers.get('Content-Type');
-    } else {
-      return Promise.reject(`Ссылка на изображение не подтверждена. Oшибка: ${res.status}`);
-    }
-  })
-  .then (res => {
-    const regex = /image\//;
-    if (res.match(regex)) {
-      console.log('Ссылка на изображение подтверждена')
-    } else {
-      console.log('Ссылка не является ссылкой на изображение')
-    }
-  })
-  .catch(err => console.log(`Ссылка на изображение не подтверждена. Ошибка: ${err}`))
+    if (res.ok) { 
+      return res.headers.get('Content-Type'); 
+    } else { 
+      return Promise.reject(`Ссылка на изображение не подтверждена. Oшибка: ${res.status}`); 
+    } 
+  }) 
+// Здесь изначально и предполагалось, что неподтверждение ссылки не должно препятствовать обновлению аватара,
+// так как большая часть ссылок не проходит проверку из-за того, что запрос блокируется политикой CORS 
+// (см. комментарий выше). Теперь при блокировании запроса срабатывает catch в index.js, и пользователю 
+// возможно не будет понятно в чем именно заключается ошибка
+//.catch(err => console.log(`Ссылка на изображение не подтверждена. Ошибка: ${err}`))
 };
      
 const sendNewCard = (inputNewCardPlace, inputNewCardLink) => {
@@ -73,7 +84,8 @@ const sendNewCard = (inputNewCardPlace, inputNewCardLink) => {
       name: inputNewCardPlace.value,
       link: inputNewCardLink.value
     })
-  });
+  })
+  .then(res => checkResponse(res));
 };
   
 const recallCard = (idCard) => {
@@ -81,6 +93,7 @@ const recallCard = (idCard) => {
     method: 'DELETE',
     headers: config.headers
   })
+  .then(res => checkResponse(res));
 };
 
 const sendLike = (idCard) => {
@@ -88,6 +101,7 @@ const sendLike = (idCard) => {
     method: 'PUT',
     headers: config.headers,
   })
+  .then(res => checkResponse(res));
 };
 
 const recallLike =(idCard) => {
@@ -95,4 +109,5 @@ const recallLike =(idCard) => {
     method: 'DELETE',
     headers: config.headers,
   })
-}
+  .then(res => checkResponse(res));
+};

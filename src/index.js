@@ -1,10 +1,8 @@
 import './pages/index.css';
-// import { initialCards } from './components/cards';
-import { createCard, deleteCard, likeCard } from './components/card';
+import { createCard, likeCard } from './components/card';
 import { openModal, listenClick, closeModal } from './components/modal';
 import { enableValidation, clearValdation } from './components/validation';
-import { getId, getCards, updateProfile, updateAvatar, checkLink, sendNewCard } from './components/api';
-export { myId, popupConfirmDeletion, formConfirmDeletion };
+import { getId, getCards, updateProfile, updateAvatar, checkLink, sendNewCard, recallCard, sendLike, recallLike } from './components/api';
 
 //объявление переменных для поиска DOM-элементов
 const placesList = document.querySelector('.places__list');
@@ -35,6 +33,7 @@ const inputAvatarLink = formEditAvatar.querySelector('.popup__input_type_url');
 
 const popupConfirmDeletion = document.querySelector('.popup_type_confirm-deletion-card');
 const formConfirmDeletion = popupConfirmDeletion.querySelector('.popup__form');
+let cardToBeDeleted = {};
 
 const configValidation = {
   formSelector: '.popup__form',
@@ -65,42 +64,43 @@ const handleEditFormSubmit = (newName, newJob) => {
   profileJob.textContent = newJob;
 };
   
-const handleNewCardFormSubmit = (idOwner, newPlaceName, newPlaceImage, likesCardList, idCard) => {
-  placesList.prepend(createCard(idOwner, newPlaceImage, newPlaceName, likesCardList, idCard, deleteCard, likeCard, viewCardImage));
+const handleNewCardFormSubmit = (myId, idOwner, newPlaceName, newPlaceImage, likesCardList, idCard) => {
+  placesList.prepend(createCard(myId, idOwner, newPlaceImage, newPlaceName, likesCardList, idCard, deleteCard, likeCard, viewCardImage));
 };
 
 const handleEditAvatarFormSubmit = (newAvatar) => {
   profileImage.style.backgroundImage = `url('${newAvatar}')`;
 };
 
-const renderLoading = (isLoading) => {
-  const popupOpened = document.querySelector('.popup_is-opened');
-  const buttonSubmitPopupOpened = popupOpened.querySelector('.popup__button');
+const handleConfirmDeletionFormSubmit = (cardElement, idCard) => {
+  cardElement.remove();  
+  console.log(`Карточка с id ${idCard} удалена`);
+};
+ 
+const deleteCard = (cardElement, idCard) => {
+  cardToBeDeleted = { card: cardElement, id: idCard };
+  openModal(popupConfirmDeletion);
+};
+
+const renderLoading = (isLoading, form) => {
+  const buttonSubmitPopup = form.querySelector('.popup__button');
   if (isLoading === true) {
-  buttonSubmitPopupOpened.textContent = 'Сохранение...';
+  buttonSubmitPopup.textContent = 'Сохранение...';
   } else {
-  buttonSubmitPopupOpened.textContent = 'Сохранить';
+  buttonSubmitPopup.textContent = 'Сохранить';
   }
 };
 
 //вызов функций и методов, добавление обработчиков
-Promise.all([getId, getCards])
+Promise.all([getId(), getCards()])
 .then((responses) => {
-  if (responses[0].status === 200 && responses[1].status === 200) {
-    responses[0].json()
-    .then(resultGetId => {
-      profileName.textContent = resultGetId.name;
-      profileJob.textContent = resultGetId.about;
-      profileImage.style.backgroundImage = `url('${resultGetId.avatar}')`;
-      myId = resultGetId._id;
-    })
-    responses[1].json()
-    .then(resultGetCards => {
-      resultGetCards.forEach(element => {placesList.append(createCard(element.owner._id, element.link, element.name, element.likes, element._id, deleteCard, likeCard, viewCardImage))});
-    })
-  } else {
-    return Promise.reject(`Произошла ошибка: ${res.status}`)
-  }
+  const resultGetId = responses[0];
+  const resultGetCards = responses[1];
+  profileName.textContent = resultGetId.name;
+  profileJob.textContent = resultGetId.about;
+  profileImage.style.backgroundImage = `url('${resultGetId.avatar}')`;
+  myId = resultGetId._id;
+  resultGetCards.forEach(element => {placesList.append(createCard(myId, element.owner._id, element.link, element.name, element.likes, element._id, deleteCard, likeCard, viewCardImage))});
 })
 .catch(err => {alert(`Запрос не может быть корректно обработан. Ошибка: ${err}`)});  
     
@@ -114,21 +114,14 @@ buttonEditInfo.addEventListener('click', () => {
 popupEditInfo.addEventListener('click', (evt) => listenClick(evt, popupEditInfo));
 formEditProfile.addEventListener('submit', (evt) => {
   evt.preventDefault();
-  renderLoading(true);
+  renderLoading(true, evt.target);
   updateProfile(inputProfileName, inputProfileJob)
   .then(res => {
-    if (res.ok) {
-      return res.json();
-    } else {
-      return Promise.reject(`Произошла ошибка: ${res.status}`);
-    }
-  })
-  .then(res => handleEditFormSubmit(res.name, res.about))
-  .catch(err => alert(`Запрос не может быть корректно обработан. Ошибка: ${err}`))
-  .finally(() => {
-    renderLoading(false);
+    handleEditFormSubmit(res.name, res.about);
     closeModal(popupEditInfo);
-  });
+  })
+  .catch(err => alert(`Запрос не может быть корректно обработан. Ошибка: ${err}`))
+  .finally(() => renderLoading(false, evt.target));
 });
 
 buttonAddCard.addEventListener('click', () => {
@@ -139,25 +132,27 @@ buttonAddCard.addEventListener('click', () => {
 popupNewCard.addEventListener('click', (evt) => listenClick(evt, popupNewCard));
 formNewCard.addEventListener('submit', (evt) => {
   evt.preventDefault();
-  renderLoading(true);
+  renderLoading(true, evt.target);
   sendNewCard(inputNewCardPlace, inputNewCardLink)
   .then(res => {
-    if (res.ok) {
-      return res.json()
-    } else {
-      return Promise.reject(`Произошла ошибка: ${res.status}`)
-    }
-  })
-  .then(res => handleNewCardFormSubmit(res.owner._id, res.name, res.link, res.likes, res._id))
-  .catch(err => {alert(`Запрос не может быть корректно обработан. Ошибка: ${err}`)})
-  .finally(() => {
-    renderLoading(false);
+    handleNewCardFormSubmit(res.owner._id, res.owner._id, res.name, res.link, res.likes, res._id);
     closeModal(popupNewCard);
-    // formNewCard.reset();
-  });
+  })
+  .catch(err => {alert(`Запрос не может быть корректно обработан. Ошибка: ${err}`)})
+  .finally(() => renderLoading(false, evt.target))
 });
 
 popupConfirmDeletion.addEventListener('click', (evt) => listenClick(evt, popupConfirmDeletion));
+formConfirmDeletion.addEventListener('submit', (evt) => {
+  evt.preventDefault();
+  recallCard(cardToBeDeleted.id)
+  .then(res => {
+    console.log(res);
+    handleConfirmDeletionFormSubmit(cardToBeDeleted.card, cardToBeDeleted.id);
+    closeModal(popupConfirmDeletion);
+  })
+  .catch(res => alert(`Запрос не может быть корректно обработан. Ошибка: ${res}`))
+});
 
 buttonEditAvatar.addEventListener('click', () => {
   openModal(popupEditAvatar);
@@ -167,23 +162,23 @@ buttonEditAvatar.addEventListener('click', () => {
 popupEditAvatar.addEventListener('click', (evt) => listenClick(evt, popupEditAvatar));
 formEditAvatar.addEventListener('submit', (evt) => {
   evt.preventDefault();
-  renderLoading(true);
-  checkLink(inputAvatarLink);
-  updateAvatar(inputAvatarLink)
-  .then(res => {
-    if (res.ok) {
-      return res.json()
+  renderLoading(true, evt.target);
+  checkLink(inputAvatarLink)
+  .then (res => {
+    const regex = /image\//;
+    if (res.match(regex)) {
+      console.log('Ссылка на изображение подтверждена')
     } else {
-      return Promise.reject(`Произошла ошибка: ${res.status}`)
+      console.log('Ссылка не является ссылкой на изображение')
     }
   })
-  .then(res => handleEditAvatarFormSubmit(res.avatar))
-  .catch(err => {alert(`Запрос не может быть корректно обработан. Ошибка: ${err}`)})
-  .finally(() => {
-    renderLoading(false);
+  .then(res => updateAvatar(inputAvatarLink))
+  .then(res => {
+    handleEditAvatarFormSubmit(res.avatar);
     closeModal(popupEditAvatar);
-    // formEditAvatar.reset();
-  });
+  })
+  .catch(err => {alert(`Запрос не может быть корректно обработан. Ошибка: ${err}`)})
+  .finally(() => renderLoading(false, evt.target));
 });
 
 enableValidation(configValidation);
