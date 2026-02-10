@@ -6,7 +6,7 @@
 Для добавления новой фотографии нужно нажать на кнопку в правом верхнем углу и добавить в открывшемся окне название изображения и ссылку на него в указанном формате.
 Удалять можно только карточки, добавленные пользователем (на них отображается иконка удаления).
 
-[Макет в Figma](https://www.figma.com/design/BOu4PyRg0j7B70CHFy6jY3/5-%D1%81%D0%BF%D1%80%D0%B8%D0%BD%D1%82.-JavaScript?node-id=0-1&p=f&t=1kMIcBvjKYbEw10K-0)
+[Макет в Figma](https://www.figma.com/design/BOu4PyRg0j7B70CHFy6jY3/5-%D1%81%D0%BF%D1%80%D0%B8%D0%BD%D1%82.-JavaScript?node-id=0-1&p=f&t=1kMIcBvjKYbEw10K-0)  
 [Ссылка на результат проектной работы](https://evgeniaskasyrskaya.github.io/mesto-project-ff/)
 
 ### Стек:
